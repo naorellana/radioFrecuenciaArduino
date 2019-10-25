@@ -24,8 +24,8 @@ char tecla ;
 // Constructor de la librería de LCD 16x2
 // Aqui se configuran los pines asignados a la pantalla del PCF8574
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
-const int button=13;
-const int option=A1;
+const int button = 13;
+const int option = A1;
 
 void setup()
 {
@@ -42,16 +42,17 @@ void setup()
 
 void loop()
 {
-  if (digitalRead(button)==HIGH){
-    Serial.println("Alto");
-  }else{
-    Serial.println("BAJO");
+  if (digitalRead(button) == LOW) {
+    Serial.println("No presionado");
+  } else {
+    Serial.println("Presionado");
   }
-  if (digitalRead(option)==HIGH){
-    Serial.println("Paralelo");
-  }else{
-    Serial.println("Serial");
+  if (digitalRead(option) == LOW) {
+    Serial.println("LOW Serial ... uno por uno");
+  } else {
+    Serial.println("HIGH Paralelo TODOS a la vez");
   }
+
   int i = 0;
   String digitos = "";
   printScreen("Esperando datos...", "Ingresar 2 digitos");
@@ -60,37 +61,59 @@ void loop()
     if (tecla = teclado.getKey()) {
       i++;
       digitos = digitos + tecla;
-      Serial.println("dats a enviar: " + digitos);
+      Serial.println("Datos a enviar: " + digitos);
 
     }
   }
   Serial.println("procesando");
-  while(digitalRead(button)==LOW){
-    Serial.print("... ");
+  while (digitalRead(button) == LOW) {
+    Serial.print(". ");
+    printScreen("Presione boton", "Para enviar!");
   }
-  sendString(digitos, true); 
+
+  if (digitalRead(option) == LOW) {
+    Serial.println();
+    Serial.println("Serial ... uno por uno");
+    Serial.println(digitos.length());
+    i = 0;
+    while ( i < digitos.length()) {
+      String textnum = String(digitos[i]) + "" ;
+
+      Serial.println(textnum);
+      sendString(textnum, true);
+      delay(100);
+      printScreen("Uno a uno...", textnum);
+      printScreen("Enviado!", textnum);
+      i++;
+    }
+  } else {
+    Serial.println("Paralelo TODOS a la vez");
+    sendString(digitos, true);
+    printScreen("Todos...", digitos);
+    printScreen("Enviado!", digitos);
+  }
+
   delay(100);
-  
-  printScreen("Enviando...", digitos);
-  printScreen("Enviado!", digitos);
+
+
 }
 
 void sendString(String message, bool wait)
 {
-  byte messageLength = message.length() + 1; 
+  byte messageLength = message.length() + 1;
 
   // convert string to char array
-  char charBuffer[messageLength]; 
+  char charBuffer[messageLength];
   message.toCharArray(charBuffer, messageLength);
 
-  vw_send((uint8_t *)charBuffer, messageLength); 
+  vw_send((uint8_t *)charBuffer, messageLength);
 
-  if (wait) vw_wait_tx(); 
+  if (wait) vw_wait_tx();
 
-  Serial.println("Enviado: " + message); 
+  Serial.println("Enviado: " + message);
 }
 
-void printScreen(String text1, String text2){
+void printScreen(String text1, String text2) {
   //pantalla
   // Indicar a la libreria que tenemos conectada una pantalla de 16x2
   lcd.begin(16, 2);

@@ -25,11 +25,13 @@ char tecla ;
 // Aqui se configuran los pines asignados a la pantalla del PCF8574
 LiquidCrystal_I2C lcd(0x27, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
 const int button=13;
+const int option=A1;
 
 void setup()
 {
   Serial.begin(9600);
   pinMode(button, INPUT);
+  pinMode(option, INPUT);
   // virtual wire
   vw_set_tx_pin(12); // pin para modulo emisor ATAD
   vw_setup(8000); // bps
@@ -45,6 +47,11 @@ void loop()
   }else{
     Serial.println("BAJO");
   }
+  if (digitalRead(option)==HIGH){
+    Serial.println("Paralelo");
+  }else{
+    Serial.println("Serial");
+  }
   int i = 0;
   String digitos = "";
   printScreen("Esperando datos...", "Ingresar 2 digitos");
@@ -58,6 +65,9 @@ void loop()
     }
   }
   Serial.println("procesando");
+  while(digitalRead(button)==LOW){
+    Serial.print("... ");
+  }
   sendString(digitos, true); 
   delay(100);
   
